@@ -8,41 +8,62 @@
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f2f2f2;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(120deg,#1e3c72,#2a5298);
+    color: #333;
 }
 header {
-    background: linear-gradient(90deg,#000,#333);
+    background: rgba(0,0,0,0.8);
     color: white;
-    padding: 25px;
+    padding: 30px;
     text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 section {
     background: white;
-    margin: 15px;
+    margin: 20px;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
 }
 h2 {
     margin-top: 0;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
 }
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
+th {
+    background: #2a5298;
+    color: white;
+}
 th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
+    border: 1px solid #ddd;
+    padding: 10px;
     text-align: center;
 }
+tr:hover {
+    background: #f1f1f1;
+}
 input {
-    width: 45px;
+    width: 50px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
 }
 button {
-    padding: 6px 10px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #2a5298;
+    color: white;
     cursor: pointer;
+}
+button:hover {
+    background: #1e3c72;
 }
 .team {
     display: flex;
@@ -52,16 +73,17 @@ button {
 .team img {
     width: 25px;
     height: 25px;
+    border-radius: 50%;
 }
 .sponsors {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     flex-wrap: wrap;
 }
 .sponsor {
-    background: #eee;
-    padding: 20px;
-    border-radius: 8px;
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 10px;
     min-width: 120px;
     text-align: center;
 }
@@ -78,13 +100,12 @@ button {
     <p>Calcio a 6 – 12 Squadre</p>
 </header>
 
-<!-- PARTITE -->
 <section>
 <h2>🏟 Partite Gironi</h2>
 <table>
 <tr>
-    <th>SQUADRE</th>
-    <th>PUNTI</th>
+    <th>Squadra A</th>
+    <th>Squadra B</th>
     <th>Gol A</th>
     <th>Gol B</th>
     <th>Salva</th>
@@ -95,7 +116,7 @@ button {
 <td class="team"><img src="https://via.placeholder.com/25">Squadra 2</td>
 <td><input id="a1"></td>
 <td><input id="b1"></td>
-<td><button onclick="aggiorna('Prova squadra 1','Squadra 2','a1','b1')">OK</button></td>
+<td><button onclick="aggiorna('Squadra 1','Squadra 2','a1','b1')">OK</button></td>
 </tr>
 
 <tr>
@@ -109,64 +130,11 @@ button {
 </table>
 </section>
 
-<!-- CLASSIFICA -->
 <section>
 <h2>📊 Classifica Generale</h2>
-<table id="classifica">
-<tr>
-<th>Squadra</th>
-<th>Punti</th>
-<th>GF</th>
-<th>GS</th>
-</tr>
-</table>
-</section>
-
-<!-- PLAYOFF -->
-<section>
-<h2>🔥 Playoff</h2>
-<p>Accedono ai playoff le prime 8 squadre.</p>
-<ul>
-<li>Quarti di finale</li>
-<li>Semifinali</li>
-<li>Finale</li>
-</ul>
-</section>
-
-<!-- SPONSOR -->
-<section>
-<h2>🤝 Sponsor</h2>
-<div class="sponsors">
-<div class="sponsor">Sponsor 1</div>
-<div class="sponsor">Sponsor 2</div>
-<div class="sponsor">Sponsor 3</div>
-<div class="sponsor">Sponsor 4</div>
-</div>
-</section>
-
-<!-- INFO -->
-<section>
-<h2>ℹ️ Info per Partecipare</h2>
-<p>
-⚽ Calcio a 6<br>
-👥 Min 8 Max 12 giocatori a squadra<br>
-💰 Quota iscrizione<br>
-📞 Contatti organizzazione<br>
-📍 Chiesa Santa Maria Goretti Cesenatico
-</p>
-</section>
-
-<!-- REGOLE -->
-<section>
-<h2>📜 Regolamento</h2>
-<ul>
-<li>2 tempi da 20 minuti</li>
-<li>Vittoria: 3 punti</li>
-<li>Pareggio: 1 punto</li>
-<li>Sconfitta: 0 punti</li>
-<li>Cambi liberi</li>
-<li>Arbitro ufficiale</li>
-</ul>
+<table id="classifica"></table>
+<br>
+<button onclick="resetta()">🔄 Reset Classifica</button>
 </section>
 
 <script>
@@ -193,27 +161,37 @@ function aggiorna(a,b,ga,gb) {
 
 function mostra() {
     let t = document.getElementById("classifica");
-    t.innerHTML = "<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th></tr>";
+    t.innerHTML = "<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>DR</th></tr>";
 
     Object.entries(dati)
-    .sort((a,b)=>b[1].p - a[1].p)
-    .forEach(s=>{
-        t.innerHTML += `<tr>
+    .sort((a,b)=>{
+        if (b[1].p !== a[1].p) return b[1].p - a[1].p;
+        return (b[1].gf - b[1].gs) - (a[1].gf - a[1].gs);
+    })
+    .forEach((s,i)=>{
+        let dr = s[1].gf - s[1].gs;
+        let colore = i < 8 ? "#d4edda" : "white";
+
+        t.innerHTML += `<tr style="background:${colore}">
         <td>${s[0]}</td>
         <td>${s[1].p}</td>
         <td>${s[1].gf}</td>
         <td>${s[1].gs}</td>
+        <td>${dr}</td>
         </tr>`;
     });
 }
+
+function resetta() {
+    if (confirm("Sei sicuro di voler cancellare tutto?")) {
+        localStorage.removeItem("smg");
+        dati = {};
+        mostra();
+    }
+}
+
 mostra();
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
